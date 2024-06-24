@@ -1,0 +1,91 @@
+# Task 1:
+1. The purpose of lapply() is used to apply functions to lists. It takes in a list and function to apply the function to each element in the list. The equivalent function in the purrr package is map().
+2. lapply(X=my_list, FUN=cor(numeric_matrix, method = "kendall"))
+3. The main advantages of the purrr package is the functions are more consistent and the helper functions are useful.
+4. A side effect function is a function that runs but does not compute or return an output. So they do not naturally return the modified argument.
+5. R has a separate environment for functions and variables so naming something sd has no effect on the R function sd().
+
+# Task 2:
+Creating a vector of responses and predictions. Creating a function for retreiving RMSE, MAE, and a function finding both together. Works when tested.
+```{r Writing R Fn}
+set.seed(10)
+n<-100
+x<-runif(n)
+resp<-3 + 10*x + rnorm(n)
+pred<-predict(lm(resp~x), data.frame(x))
+
+getRMSE<- function(resp, pred){
+  RMSE<-sqrt(mean((resp-pred)^2))
+  
+  return(RMSE)
+}
+
+RMSE<-getRMSE(resp,pred)
+RMSE
+
+getMAE<-function(resp,pred){
+  MAE<-mean(abs(resp-pred))
+  return(MAE)
+}
+
+MAE<-getMAE(resp,pred)
+MAE
+
+rmse_mse<-function(resp,pred){
+  if(is.vector(resp) & is.vector(pred)){
+  RMSE<-getRMSE(resp,pred)
+  MAE<-getMAE(resp,pred)
+  } else{
+    stop("Stop")
+  }
+  return(list(RMSE=RMSE,MAE=MAE))
+}
+
+values<-rmse_mse(resp,pred)
+values
+```
+# Task 3
+Find all articles with "apple" in them. Writing a function to find articles using a query, from date, and api key. Then using function to find Tesla articles from set date and rugby articles from set date.
+```{r Querying an API}
+library(httr)
+website<-GET("https://newsapi.org/v2/everything",
+                     query= list(q="apple",
+from="2024-06-23", to="2024-06-23", sortBy= "popularity",
+apiKey ="82114f6cce76476db31ee999aae3e892",
+language = "en"))
+
+content<-content(website, "parsed")
+
+articles<-content$articles
+
+query<-"apple"
+from_date<-"2024-06-23"
+api_key<-"82114f6cce76476db31ee999aae3e892"
+
+getArticle<-function(query, from_date, api_key ){
+  url<-"https://newsapi.org/v2/everything"
+  to<-format(Sys.Date(), "%Y-%m-%d")
+  param<-list(
+    q = query,
+    apiKey = api_key,
+    from = from_date,
+    to = "2024-06-24",
+    sortBy = "Popularity"
+  )
+  
+  website<-GET(url=url, query= param)
+  
+  content<- content(website, "parsed")
+  
+  articles<-content$articles
+  
+  return(articles)
+}
+  
+tesla_articles<-getArticle("tesla", "2024-06-01", api_key)
+tesla_articles
+
+rugby_articles<-getArticle("rugby", "2024-06-15", api_key)
+rugby_articles
+
+```
